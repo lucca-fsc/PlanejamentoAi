@@ -1,48 +1,37 @@
-import type { ChatMessage, ChatMessageRole } from '@/data/conversation'
+import { useCallback } from 'react'
 
-const LOCAL_STORAGE_KEY = 'simulation-chat-messages'
-
-type NewChatMessage = {
-  simulationId: string
-  role: ChatMessageRole
-  content: string
-}
+import { useAuth } from '@/hooks/useAuth'
+import {
+  createMessages,
+  listMessagesBySimulationId,
+  type NewChatMessage,
+} from '@/services/conversationRepository'
 
 export const useConversationStorage = () => {
-  const getAllMessages = (): ChatMessage[] => {
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
+  const { user } = useAuth()
 
-    if (!storage) {
-      return []
+  const getUserId = useCallback(() => {
+    if (!user) {
+      throw new Error('Usuario nao autenticado.')
     }
 
-    const savedData = JSON.parse(storage) as ChatMessage[]
+    return user.id
+  }, [user])
 
-    return Array.isArray(savedData) ? savedData : []
-  }
+  const getMessagesBySimulationId = useCallback((simulationId: string) => {
+    return listMessagesBySimulationId(simulationId, getUserId())
+  }, [getUserId])
 
-  const getMessagesBySimulationId = (simulationId: string): ChatMessage[] => {
-    return getAllMessages().filter(
-      (message) => message.simulationId === simulationId,
+  const saveMessages = useCallback((messages: NewChatMessage[]) => {
+    const userId = getUserId()
+
+    return createMessages(
+      messages.map((message) => ({
+        ...message,
+        userId,
+      })),
     )
-  }
-
-  const saveMessages = (messages: NewChatMessage[]): ChatMessage[] => {
-    const savedData = getAllMessages()
-    const createdAt = new Date().toISOString()
-    const records = messages.map((message) => ({
-      ...message,
-      id: crypto.randomUUID(),
-      createdAt,
-    }))
-
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify([...savedData, ...records]),
-    )
-
-    return records
-  }
+  }, [getUserId])
 
   return { getMessagesBySimulationId, saveMessages }
 }

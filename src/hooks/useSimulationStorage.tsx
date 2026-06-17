@@ -1,67 +1,56 @@
+import { useCallback } from 'react'
+
 import { type SimulationFormData, type SimulationRecord } from '@/data/simulation'
-
-
-const LOCAL_STORAGE_KEY = 'simulation-data'
+import { useAuth } from '@/hooks/useAuth'
+import {
+  createSimulation,
+  deleteSimulation,
+  getSimulationById,
+  listSimulations,
+  updateSimulation as updateSimulationRecord,
+} from '@/services/simulationRepository'
 
 export const useSimulationStorage = () => {
-  const saveFormData = (formData: SimulationFormData) => {
-    const id = crypto.randomUUID()
-    const record: SimulationRecord = { ...formData, id }
+  const { user } = useAuth()
 
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-    const savedData = storage
-      ? (JSON.parse(storage) as SimulationRecord[])
-      : []
-
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify([...savedData, record]),
-    )
-
-    return id
-  }
-
-
-  const getFormData = (id: string): SimulationRecord | null => {
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (!storage) {
-      return null
+  const getUserId = useCallback(() => {
+    if (!user) {
+      throw new Error('Usuario nao autenticado.')
     }
 
-    const savedData = JSON.parse(storage) as SimulationRecord[]
-    return savedData.find((record) => record.id === id) || null
-  }
+    return user.id
+  }, [user])
 
-  const deleteFormData = (id: string): boolean => {
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
+  const saveFormData = useCallback(async (formData: SimulationFormData) => {
+    const simulation = await createSimulation(formData, getUserId())
+    return simulation.id
+  }, [getUserId])
 
-    if (!storage) {
-      return false
-    }
+  const getFormData = useCallback((id: string) => {
+    return getSimulationById(id, getUserId())
+  }, [getUserId])
 
-    const savedData = JSON.parse(storage) as SimulationRecord[]
-    const updatedData = savedData.filter((record) => record.id !== id)
+  const getAllFormData = useCallback(() => {
+    return listSimulations(getUserId())
+  }, [getUserId])
 
-    if (updatedData.length === savedData.length) {
-      return false
-    }
-
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedData))
-
+  const deleteFormData = useCallback(async (id: string): Promise<boolean> => {
+    await deleteSimulation(id, getUserId())
     return true
+  }, [getUserId])
+
+  const updateSimulation = useCallback(
+    (id: string, data: SimulationRecord) => {
+      return updateSimulationRecord(id, data, getUserId())
+    },
+    [getUserId],
+  )
+
+  return {
+    saveFormData,
+    getFormData,
+    getAllFormData,
+    updateSimulation,
+    deleteFormData,
   }
-
-  const updateSimulation = (id: string, data: SimulationRecord) => {
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-    const savedData = storage ? (JSON.parse(storage) as SimulationRecord[]) : []
-
-    const updated = savedData.map((record) =>
-      record.id === id ? { ...data } : record,
-    )
-
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
-  }
-
-
-  return { saveFormData, getFormData, updateSimulation, deleteFormData }
 }

@@ -1,8 +1,9 @@
+import { ArrowLeft, ArrowRight, type LucideIcon } from "lucide-react";
+import { type SyntheticEvent,useState } from "react";
+
 import { Button } from "@/components/shared/Button";
 import { Input, type InputProps } from "@/components/shared/Input";
 import { formatCurrencyBRL } from "@/utils/currency";
-import { ArrowLeft, ArrowRight, type LucideIcon } from "lucide-react";
-import { useState, type SyntheticEvent } from "react";
 
 
 export interface FormStepProps {
@@ -19,8 +20,9 @@ export interface FormStepProps {
 
 interface ActionsButtonsProps {
   onBack: () => void
-  onNext: (value: string) => void
+  onNext: (value: string) => void | Promise<void>
   hideBackButton?: boolean
+  isSubmitting?: boolean
 }
 
 export function FormStep({
@@ -30,6 +32,7 @@ export function FormStep({
   inputProps,
   submitButtonProps,
   hideBackButton,
+  isSubmitting = false,
   onBack,
   onNext }: FormStepProps & ActionsButtonsProps) {
 
@@ -42,7 +45,7 @@ export function FormStep({
       return;
     }
 
-    onNext(inputValue);
+    void onNext(inputValue);
   }
   return (
     <div className="bg-card rounded-2xl p-6 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-8">
@@ -73,7 +76,7 @@ export function FormStep({
           <Button type="submit"
             variant="primary"
             icon={!submitButtonProps ? ArrowRight : undefined}
-            disabled={!inputValue}
+            disabled={!inputValue || isSubmitting}
             className="prder-1 flex-1 sm:order-2">
             {submitButtonProps?.label ?? 'Próximo'}
             {submitButtonProps?.emojiIcon}

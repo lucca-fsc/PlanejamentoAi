@@ -1,13 +1,18 @@
-import { createBrowserRouter } from 'react-router-dom'
-import { RootLayout } from './components/layout/RootLayout'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { ProtectedLayout } from './components/layout/ProtectedLayout'
 import { SimulationFormPage } from './pages/SimulationFormPage'
 import { SimulationResultsPage } from './pages/SimulationResultsPage'
+import { LoginPage } from '@/pages/LoginPage'
 import { SimulationHistPage } from '@/pages/SimulationHistPage'
 import { SimulationInsightPage } from '@/pages/SimulationInsightPage'
 
 export const router = createBrowserRouter([
   {
-    element: <RootLayout />,
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    element: <ProtectedLayout />,
     children: [
       {
         path: '/',
@@ -23,7 +28,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/insight/:id',
-        element: <SimulationInsightPage />
+        element: <SimulationInsightPage />,
+      },
+      {
+        path: '*',
+        element: <Navigate to="/" replace />,
       },
     ],
   },

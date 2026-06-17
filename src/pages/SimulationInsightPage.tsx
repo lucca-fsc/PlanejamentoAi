@@ -1,15 +1,49 @@
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { ConversationForm } from '@/components/features/Simulation/SimulationInsight/ConversationForm'
 import { ConversationHistory } from '@/components/features/Simulation/SimulationInsight/ConversationHistory'
+import type { SimulationRecord } from '@/data/simulation'
 import { useConversationAi } from '@/hooks/useConversationAi'
 import { useSimulationStorage } from '@/hooks/useSimulationStorage'
 
 export function SimulationInsightPage() {
   const { id } = useParams<{ id: string }>()
   const { getFormData } = useSimulationStorage()
-  const data = id ? getFormData(id) : null
+  const [data, setData] = useState<SimulationRecord | null>(null)
+  const [isSimulationLoading, setIsSimulationLoading] = useState(true)
+  const [simulationError, setSimulationError] = useState<string | null>(null)
   const { messages, isLoading, error, sendMessage } = useConversationAi(id ?? '')
+
+  useEffect(() => {
+    async function loadSimulation() {
+      if (!id) {
+        setIsSimulationLoading(false)
+        return
+      }
+
+      try {
+        setIsSimulationLoading(true)
+        setSimulationError(null)
+        const simulation = await getFormData(id)
+        setData(simulation)
+      } catch {
+        setSimulationError('Nao foi possivel carregar a simulacao.')
+      } finally {
+        setIsSimulationLoading(false)
+      }
+    }
+
+    void loadSimulation()
+  }, [getFormData, id])
+
+  if (isSimulationLoading) {
+    return <p>Carregando simulacao...</p>
+  }
+
+  if (simulationError) {
+    return <p>{simulationError}</p>
+  }
 
   if (!data) {
     return <p>Simulacao nao encontrada!</p>

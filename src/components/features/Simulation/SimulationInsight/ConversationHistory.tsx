@@ -1,6 +1,7 @@
 import { ArrowDown, Bot, UserRound } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { MarkdownContent } from '@/components/shared/MarkdownContent'
 import type { ChatMessage } from '@/data/conversation'
 
 const previewMessages: ChatMessage[] = [
@@ -89,7 +90,7 @@ export function ConversationHistory({
       <div className="relative min-h-0 flex-1">
         <div
           ref={messagesContainerRef}
-          className="flex h-full flex-col gap-2 overflow-y-auto overflow-x-hidden pr-1 pb-12"
+          className="scrollbar-theme flex h-full flex-col gap-2 overflow-y-auto overflow-x-hidden pr-2 pb-12"
           onScroll={updateIsAtBottom}
         >
           {visibleMessages.map((message) => {
@@ -118,7 +119,7 @@ export function ConversationHistory({
                       : 'bg-secondary-button text-foreground',
                   ].join(' ')}
                 >
-                  {message.content}
+                  <MarkdownContent content={message.content} />
                 </div>
 
                 {isUser && (

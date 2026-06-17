@@ -1,16 +1,50 @@
+import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useParams } from "react-router-dom"
+
 import { AIInsightsCard } from "@/components/features/Simulation/SimulationResults/AiInsightCardProps"
 import { Card } from "@/components/features/Simulation/SimulationResults/Card"
 import { PageHero } from "@/components/shared/PageHero"
+import type { SimulationRecord } from "@/data/simulation"
 import { useSimulationStorage } from "@/hooks/useSimulationStorage"
 import { calcMonthlySavings } from "@/utils/simulation"
-import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from "lucide-react"
-import { useParams } from "react-router-dom"
 
 export function SimulationResultsPage() {
   const { id } = useParams<{ id: string }>()
   const { getFormData } = useSimulationStorage()
-  const data = id ? getFormData(id) : null;
+  const [data, setData] = useState<SimulationRecord | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    async function loadSimulation() {
+      if (!id) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError(null)
+        const simulation = await getFormData(id)
+        setData(simulation)
+      } catch {
+        setError('Nao foi possivel carregar a simulacao.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void loadSimulation()
+  }, [getFormData, id])
+
+  if (isLoading) {
+    return <p>Carregando simulacao...</p>
+  }
+
+  if (error) {
+    return <p>{error}</p>
+  }
 
   if (!data) {
     return <p> Simulação não encontrada! </p>

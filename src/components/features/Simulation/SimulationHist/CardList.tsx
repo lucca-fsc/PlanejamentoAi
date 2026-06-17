@@ -1,4 +1,5 @@
 import { ExternalLink, Goal, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/shared/Button'
@@ -26,16 +27,23 @@ export function CardList({
 }: CardListProps) {
   const navigate = useNavigate()
   const { deleteFormData } = useSimulationStorage()
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleDeleteForm = (id: string) => {
+  const handleDeleteForm = async (id: string) => {
     if (!id) {
       return
     }
 
-    const deleted = deleteFormData(id)
+    setIsDeleting(true)
 
-    if (deleted) {
-      onDeleted?.(id)
+    try {
+      const deleted = await deleteFormData(id)
+
+      if (deleted) {
+        onDeleted?.(id)
+      }
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -75,7 +83,8 @@ export function CardList({
           variant="ghost"
           icon={Trash2}
           className="text-red-500"
-          onClick={() => handleDeleteForm(id)} />
+          disabled={isDeleting}
+          onClick={() => void handleDeleteForm(id)} />
         <Button
           variant="secondary"
           icon={ExternalLink}
