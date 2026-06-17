@@ -4,10 +4,14 @@ import { type FormEvent, type KeyboardEvent, useState } from 'react'
 import { Button } from '@/components/shared/Button'
 
 interface ConversationFormProps {
-  onSendMessage: (message: string) => void
+  disabled?: boolean
+  onSendMessage: (message: string) => void | Promise<void>
 }
 
-export function ConversationForm({ onSendMessage }: ConversationFormProps) {
+export function ConversationForm({
+  disabled = false,
+  onSendMessage,
+}: ConversationFormProps) {
   const [message, setMessage] = useState('')
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -19,7 +23,7 @@ export function ConversationForm({ onSendMessage }: ConversationFormProps) {
   const sendMessage = () => {
     const trimmedMessage = message.trim()
 
-    if (!trimmedMessage) {
+    if (!trimmedMessage || disabled) {
       return
     }
 
@@ -55,9 +59,14 @@ export function ConversationForm({ onSendMessage }: ConversationFormProps) {
           name="message"
           rows={3}
           value={message}
+          disabled={disabled}
           onChange={(event) => setMessage(event.target.value)}
           onKeyDown={handleTextareaKeyDown}
-          placeholder="Digite sua pergunta sobre a simulacao..."
+          placeholder={
+            disabled
+              ? 'Gerando resposta...'
+              : 'Digite sua pergunta sobre a simulacao...'
+          }
           className="min-h-12 w-full min-w-0 flex-1 resize-none rounded-2xl border border-border bg-input px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
         />
         <Button
@@ -65,6 +74,7 @@ export function ConversationForm({ onSendMessage }: ConversationFormProps) {
           variant="primary"
           icon={SendHorizontal}
           iconPosition="right"
+          disabled={disabled}
           className="min-h-6 whitespace-nowrap !p-3"
         >
         </Button>

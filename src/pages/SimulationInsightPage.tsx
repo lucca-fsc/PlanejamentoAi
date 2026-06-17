@@ -1,42 +1,18 @@
-import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { ConversationForm } from '@/components/features/Simulation/SimulationInsight/ConversationForm'
 import { ConversationHistory } from '@/components/features/Simulation/SimulationInsight/ConversationHistory'
-import { PageHero } from '@/components/shared/PageHero'
-import type { ChatMessage } from '@/data/conversation'
-import { useConversationStorage } from '@/hooks/useConversationStorage'
+import { useConversationAi } from '@/hooks/useConversationAi'
 import { useSimulationStorage } from '@/hooks/useSimulationStorage'
 
 export function SimulationInsightPage() {
   const { id } = useParams<{ id: string }>()
   const { getFormData } = useSimulationStorage()
-  const { getMessagesBySimulationId, saveMessages } = useConversationStorage()
   const data = id ? getFormData(id) : null
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    id ? getMessagesBySimulationId(id) : [],
-  )
+  const { messages, isLoading, error, sendMessage } = useConversationAi(id ?? '')
 
   if (!data) {
     return <p>Simulacao nao encontrada!</p>
-  }
-
-  const handleSendMessage = (content: string) => {
-    const newMessages = saveMessages([
-      {
-        simulationId: data.id,
-        role: 'user',
-        content,
-      },
-      {
-        simulationId: data.id,
-        role: 'assistant',
-        content:
-          'Recebi sua mensagem. Em breve esta resposta sera gerada pela IA considerando os dados da sua simulacao.',
-      },
-    ])
-
-    setMessages((currentMessages) => [...currentMessages, ...newMessages])
   }
 
   return (
@@ -47,7 +23,16 @@ export function SimulationInsightPage() {
       /> */}
       <div className="flex min-w-0 flex-col gap-4">
         <ConversationHistory messages={messages} />
-        <ConversationForm onSendMessage={handleSendMessage} />
+        {isLoading && (
+          <p className="text-sm text-muted-foreground">
+            Gerando resposta...
+          </p>
+        )}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <ConversationForm
+          disabled={isLoading}
+          onSendMessage={sendMessage}
+        />
       </div>
     </main>
   )
