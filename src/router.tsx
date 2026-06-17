@@ -3,6 +3,7 @@ import { RootLayout } from './components/layout/RootLayout'
 import { SimulationFormPage } from './pages/SimulationFormPage'
 import { SimulationResultsPage } from './pages/SimulationResultsPage'
 import { SimulationHistPage } from '@/pages/SimulationHistPage'
+import { SimulationInsightPage } from '@/pages/SimulationInsightPage'
 
 export const router = createBrowserRouter([
   {
@@ -21,8 +22,8 @@ export const router = createBrowserRouter([
         element: <SimulationHistPage />,
       },
       {
-        path: '/detalhes/:id',
-        element: <h1>Página de Detalhes</h1>
+        path: '/insight/:id',
+        element: <SimulationInsightPage />
       },
     ],
   },

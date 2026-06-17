@@ -80,7 +80,7 @@ export function CardList({
           variant="secondary"
           icon={ExternalLink}
           className="min-w-36 whitespace-nowrap !py-1"
-          onClick={() => void navigate(`/detalhes/${id}`)}>
+          onClick={() => void navigate(`/resultado/${id}`)}>
           Ver detalhes
         </Button>
       </div>
